@@ -1,0 +1,41 @@
+name: Build
+
+on: 
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: "0 * * * *"
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Install dependencies
+        run: npm install
+      - name: Build README.md
+        id: build
+        run: npm run build
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v4 
+        with:
+          force: true
+          message: Update README.md (${{steps.build.outputs.TIMESTAMP}})
+          author_name: Auto5958
+          author_email: 69833949+Auto5958@users.noreply.github.com
+        env:
+          GITHUB_TOKEN: ${{secrets.GH_PAT}}
